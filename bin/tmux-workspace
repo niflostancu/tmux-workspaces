@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Loads a workspace (by name or by path)
+
+set -e
+# tmux run-shell doesn't display stderr, so redirect it
+exec 2>&1
+
+SRC_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+
+source "$SRC_DIR/lib/utils.sh"
+source "$SRC_DIR/lib/workspaces.sh"
+
