@@ -10,3 +10,5 @@ SRC_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
 source "$SRC_DIR/lib/utils.sh"
 source "$SRC_DIR/lib/workspaces.sh"
 
+workspace_switch "$1"
+
