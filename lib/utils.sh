@@ -36,4 +36,26 @@ get_tmux_option() {
 	fi
 }
 
+# adds a directory to tmux's global/session PATH environment variable
+# use -g for global, defaults to setting the session variable
+tmux_add_to_path() {
+	local SPECIFIERS=()
+	local VALUE=
+	while [[ "$#" -gt 0 ]]; do
+		if [[ "$1" == "-"[gru] ]]; then
+			SPECIFIERS+=("$1")
+		elif [[ "$1" == "-t" ]]; then
+			SPECIFIERS+=(-t "$2"); shift
+		else
+			VALUE="$1"
+			break
+		fi
+		shift
+	done
+	local CURRENT_PATH=$PATH
+	if [[ ":$CURRENT_PATH:" != *:"$VALUE":* ]]; then
+		# add it
+		tmux set-environment "${SPECIFIERS[@]}" PATH "$VALUE:$CURRENT_PATH"
+	fi
+}
 

@@ -71,3 +71,32 @@ function @temporary-option() {
 	{ sleep "$SLEEP"; @set-option "${@:1:$#-1}" "$_SAVED_OPTION"; }&
 }
 
+# sets an environment variable
+# sets either a global (-g) or session (default) value
+function @set-environment() {
+	local ARGS=("$@")
+	if _check_needs_target "$@"; then ARGS=(-t "$_TMUX_SESSION" "${ARGS[@]}"); fi
+	tmux set-environment "${ARGS[@]}"
+}
+
+# add a path to $PATH
+# works as either global (-g) or session (default) path variable
+function @add-to-path() {
+	local ARGS=("$@")
+	if _check_needs_target "$@"; then ARGS+=(-t "$_TMUX_SESSION"); fi
+	tmux_add_to_path "${ARGS[@]}"
+}
+
+# internal functions
+
+# returns 0 if the command needs the implicit target (-t) argument
+# (for most tmux functions, no "-g" or "-t" given)
+function _check_needs_target() {
+	local GLOBAL=
+	for opt in "$@"; do
+		if [[ "$opt" == "-g" ]]; then return 1; fi
+		if [[ "$opt" == "-t" ]]; then return 1; fi
+	done
+	return 0
+}
+
