@@ -19,6 +19,8 @@ Features:
   [tmux-resurrect](https://github.com/tmux-plugins/tmux-resurrect<Paste>) and
   [tmuxp](https://github.com/tmux-python/tmuxp/)
 - fuzzy selector;
+- automatically capture / restore pane contents (very fast, can also be set as
+  a per-session / window option!).
 - utility scripts (e.g., kill session and switch to previous);
 
 
@@ -66,6 +68,27 @@ bind C-j run-shell "#{@workspaces-srcdir}/scripts/fuzzy-workspaces.sh"
 
 Proceed to the **Scripting** section for instructions and example scripts.
 
+### Pane Capture extension
+
+*Tmux Workspaces* can optionally persist pane contents: saving them to disk and
+restoring them the next time the pane is loaded. It leverages tmux hooks, only
+saving a pane when it gets switched away from, making the operation very efficient.
+
+To enable pane contents saving, use the `@capture-pane-enable` option, which can
+be set either global / session / per-window (see example below).
+To restore the panes, you need to put the following snippet on your shell config
+/ profile script (e.g., `bashrc` or `zshrc`):
+
+```bash
+# Restore tmux pane contents (this variable is automatically set from within the
+# tmux when the capture pane plugin is loaded)
+if [[ -n "$TMUX_PANE_RESTORE_CMD" ]]; then
+  "$TMUX_PANE_RESTORE_CMD"
+  export TMUX_PANE_RESTORE_CMD=
+fi
+```
+
+
 ## Scripting
 
 Workspaces are defined as bash scripts using special tmux object manipulation
@@ -80,8 +103,10 @@ DIR=~/Projects/tmux-plugins
 
 # create the session
 @new-session -s "$SESSION" -n "nvim" -c "$DIR"
-# tmux options can be set only for the current session
-@set-option -s "status-left" "#h | #(curl icanhazip.com) | [#S]"
+# enable pane capturing for the entire session
+@set-option "@capture-pane-enable" "1"
+# tmux options can be set only for the current window
+@set-option -w "status-left" "#h | #(curl icanhazip.com) | [#S]"
 # open neovim on the first pane
 @send-keys "nvim" ENTER
 
