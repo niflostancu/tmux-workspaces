@@ -25,15 +25,46 @@ function pcolor() {
 }
 
 # returns the value of a tmux option or a default one, if not defined
+# takes roughly the same arguments as tmux's show-options command (with an
+# exception: -s flag is for session here, server options are not used)
 get_tmux_option() {
-	local option="$1"
-	local default_value="$2"
-	local option_value=$(tmux show-option -gqv "$option")
-	if [ -z "$option_value" ]; then
-		echo "$default_value"
+	local ARGS=()
+	local GLOBAL=1
+	local OPTION=
+	local DEFAULT=
+	while [[ "$#" -gt 0 ]]; do
+		# reminder: -s stands for session options
+		if [[ "$1" == "-s" ]]; then
+			GLOBAL=;
+		elif [[ "$1" == "-"[gw] ]]; then
+			GLOBAL=; ARGS+=("$1")
+		elif [[ "$1" == "-t" ]]; then
+			ARGS+=(-t "$2"); shift
+		else
+			OPTION="$1"; DEFAULT="$2"
+			break
+		fi
+		shift
+	done
+	local value=$(tmux show-option "${ARGS[@]}" -qv "$OPTION")
+	if [[ -z "$value" ]]; then
+		echo "$DEFAULT"
 	else
-		echo "$option_value"
+		echo "$value"
 	fi
+}
+
+# infers the value of a tmux option, trying window, session and global (in this
+# order); same arguments as get_tmux_option, except the missing scope argument
+# (since they are all tried).
+infer_tmux_option() {
+	# remove the default value from $@ (use empty string so -n will work)
+	local default="${@: -1}"
+	local A=("${@:1:$#-1}")
+	local value=$(get_tmux_option -w "${A[@]}")
+	[[ -n "$value" ]] || value=$(get_tmux_option -s "${A[@]}")
+	[[ -n "$value" ]] || value=$(get_tmux_option -g "${A[@]}")
+	echo "${value:-$default}"
 }
 
 # adds a directory to tmux's global/session PATH environment variable
