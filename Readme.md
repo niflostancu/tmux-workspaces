@@ -5,6 +5,10 @@ tmux.
 It provides a framework for writing scripts to bootstrap your tmux sessions with
 the desired windows / panes / commands and tools to easily manage them.
 
+**_Disclaimer: the project is still in its alpha stage - restoring
+your workspace may not always work as expected.
+Also, the scripting API is not final and can be changed at any time._**
+
 <p align="center">
 <img src="/docs/screenshots/fuzzy_selector.png?raw=true" alt="Fuzzy Selector"
   title="Fuzzy Selector" width="300">
@@ -22,7 +26,6 @@ Features:
 - automatically capture / restore pane contents (very fast, can also be set as
   a per-session / window option!).
 - utility scripts (e.g., kill session and switch to previous);
-
 
 ## Installation
 
