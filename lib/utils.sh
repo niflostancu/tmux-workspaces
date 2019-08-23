@@ -90,3 +90,27 @@ tmux_add_to_path() {
 	fi
 }
 
+# Argument parsing routines
+
+# Returns whether the specified option flag (e.g., -t) is set.
+# Syntax: `is_option_present OPTION ARGS...`
+function is_option_present() {
+	local OPTION="$1"; shift
+	for opt in "$@"; do
+		[[ "$opt" != "$OPTION" ]] || return 0
+	done
+	return 1
+}
+
+# Returns the value of a option's argument
+# Syntax: `get_option_value OPTION ARGS...`
+function get_option_value() {
+	local OPTION="$1"; shift
+	while [[ "$#" -gt 0 ]]; do
+		if [[ "$1" == "$OPTION" ]]; then
+			echo "$2"; return 0
+		fi
+		shift
+	done
+}
+

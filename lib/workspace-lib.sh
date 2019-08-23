@@ -7,30 +7,67 @@ _TMUX_WINDOW=
 _TMUX_PANE=
 
 # set to non-null to log the tmux functions executed
-DEBUG=
+DEBUG=1
 
 # extra arguments injected to window / pane creation routines
 TMUX_WINDOW_ARGS=(-d -P -F "#{session_name}:#{window_index}")
 TMUX_SPLIT_ARGS=(-P -F "#{session_name}:#{window_index}")
 
+# Object properties
+_TMUX_WORKDIR=
+_TMUX_WORKDIR_WINDOW=
+
+# Sets the working directory to be used for the text workspace object
+function @working-dir() {
+	_TMUX_WORKDIR="$1"
+}
+
 # Tmux object creation routines
 
 function @new-session() {
-	[[ -z "$DEBUG" ]] || echo "tmux new-session -P -d $@"
-	_TMUX_SESSION=$(tmux new-session -P -d "$@")
+	local ARGS=(-P -d)
+	# append working directory if not specified
+	if ! is_option_present "-c" "$@"; then
+		[[ -z "$_TMUX_WORKDIR" ]] || ARGS+=(-c "$_TMUX_WORKDIR")
+	elif [[ -z "$_TMUX_WORKDIR" ]]; then  # set the default workdir
+		local WORKDIR=$(get_option_value "-c" "$@")
+		[[ -z "$WORKDIR" ]] || _TMUX_WORKDIR="$WORKDIR"
+	fi
+	ARGS+=("$@")
+
+	[[ -z "$DEBUG" ]] || echo "tmux new-session ${ARGS[@]}"
+	_TMUX_SESSION=$(tmux new-session "${ARGS[@]}")
 	_TMUX_WINDOW=$_TMUX_SESSION
 	_TMUX_PANE=$_TMUX_WINDOW
 }
 
 function @new-window() {
-	[[ -z "$DEBUG" ]] || echo "new-window -t $_TMUX_SESSION ${TMUX_WINDOW_ARGS[@]} $@"
-	_TMUX_WINDOW=$(tmux new-window -t "$_TMUX_SESSION" "${TMUX_WINDOW_ARGS[@]}" "$@")
+	local ARGS=("${TMUX_WINDOW_ARGS[@]}")
+	# append target if not specified
+	is_option_present "-t" "$@" || ARGS+=(-t "$_TMUX_SESSION")
+	# append working directory if not specified
+	if ! is_option_present "-c" "$@" && [[ -n "$_TMUX_WORKDIR" ]]; then
+		ARGS+=(-c "$_TMUX_WORKDIR")
+	fi
+	ARGS+=("$@")
+
+	[[ -z "$DEBUG" ]] || echo "tmux new-window ${ARGS[@]}"
+	_TMUX_WINDOW=$(tmux new-window "${ARGS[@]}")
 	_TMUX_PANE=$_TMUX_WINDOW
 } 
 
 function @split-window() {
-	[[ -z "$DEBUG" ]] || echo "tmux split-window -t $_TMUX_WINDOW ${TMUX_SPLIT_ARGS[@]} $@"
-	_TMUX_PANE=$(tmux split-window -t "$_TMUX_WINDOW" "${TMUX_SPLIT_ARGS[@]}" "$@")
+	local ARGS=("${TMUX_SPLIT_ARGS[@]}")
+	# append target if not specified
+	is_option_present "-t" "$@" || ARGS+=(-t "$_TMUX_WINDOW")
+	# append working directory if not specified
+	if ! is_option_present "-c" "$@" && [[ -n "$_TMUX_WORKDIR" ]]; then
+		ARGS+=(-c "$_TMUX_WORKDIR")
+	fi
+	ARGS+=("$@")
+
+	[[ -z "$DEBUG" ]] || echo "tmux split-window ${ARGS[@]}"
+	_TMUX_PANE=$(tmux split-window "${ARGS[@]}")
 }
 
 
