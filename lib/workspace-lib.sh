@@ -7,7 +7,7 @@ _TMUX_WINDOW=
 _TMUX_PANE=
 
 # set to non-null to log the tmux functions executed
-DEBUG=1
+DEBUG=
 
 # extra arguments injected to window / pane creation routines
 TMUX_WINDOW_ARGS=(-d -P -F "#{session_name}:#{window_index}")
