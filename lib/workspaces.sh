@@ -10,7 +10,7 @@ fi
 # opens a tmux workspace (sourcing it if not already loaded)
 function workspace_switch() {
 	local WORKSPACE_NAME="$1"
-	if ! tmux has-session -t "$WORKSPACE_NAME" 2>/dev/null; then
+	if ! tmux has-session -t="$WORKSPACE_NAME" 2>/dev/null; then
 		workspace_load "$WORKSPACE_NAME"
 	fi
 
