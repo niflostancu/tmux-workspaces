@@ -13,9 +13,10 @@ DEBUG=
 TMUX_WINDOW_ARGS=(-d -P -F "#{session_name}:#{window_index}")
 TMUX_SPLIT_ARGS=(-P -F "#{session_name}:#{window_index}")
 
-# Object properties
+# Cached properties
 _TMUX_WORKDIR=
 _TMUX_WORKDIR_WINDOW=
+_TMUX_ENVS=()
 
 # Sets the working directory to be used for the text workspace object
 function @working-dir() {
@@ -33,7 +34,7 @@ function @new-session() {
 		local WORKDIR=$(get_option_value "-c" "$@")
 		[[ -z "$WORKDIR" ]] || _TMUX_WORKDIR="$WORKDIR"
 	fi
-	ARGS+=("$@")
+	ARGS+=("$@" "${_TMUX_ENVS[@]}")
 
 	[[ -z "$DEBUG" ]] || echo "tmux new-session ${ARGS[@]}"
 	_TMUX_SESSION=$(tmux new-session "${ARGS[@]}")
@@ -112,6 +113,14 @@ function @temporary-option() {
 # sets either a global (-g) or session (default) value
 function @set-environment() {
 	local ARGS=("$@")
+	local VAR=
+	local VALUE=
+	for opt in "$@"; do
+		if [[ "$opt" == "-"* ]]; then continue; fi
+		if [[ -z "$VAR" ]]; then VAR="$opt"
+		else VALUE="$opt"; break; fi
+	done
+	_TMUX_ENVS+=(-e "$VAR=$VALUE")
 	if _check_needs_target "$@"; then ARGS=(-t "$_TMUX_SESSION" "${ARGS[@]}"); fi
 	tmux set-environment "${ARGS[@]}"
 }
